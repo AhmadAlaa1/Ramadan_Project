@@ -1,0 +1,23 @@
+[project]
+name = "quran-terminal-reader"
+version = "0.1.0"
+description = "Read the Holy Quran in the terminal with a curses TUI."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "arabic-reshaper>=3.0.0",
+    "python-bidi>=0.6.0",
+]
+
+[project.scripts]
+quran-tui = "quran_tui.__main__:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
