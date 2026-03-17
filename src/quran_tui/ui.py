@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import curses
 import textwrap
+import time
 from dataclasses import dataclass
 
 from .api import QuranAPI, QuranAPIError
@@ -36,12 +37,13 @@ class QuranReaderApp:
         self.state = ReaderState(surahs=[])
         self.kitty_renderer = KittyAyahRenderer()
         self.needs_redraw = True
+        self.preview_due_at: float | None = None
 
     def run(self) -> None:
         curses.curs_set(0)
         self.stdscr.keypad(True)
         curses.use_default_colors()
-        self.stdscr.timeout(-1)
+        self.stdscr.timeout(75)
         self._init_colors()
         self._bootstrap()
 
@@ -50,6 +52,10 @@ class QuranReaderApp:
                 self._draw()
                 self.needs_redraw = False
             key = self.stdscr.getch()
+            if key == -1:
+                if self._run_pending_preview():
+                    self.needs_redraw = True
+                continue
             if not self._handle_key(key):
                 self.kitty_renderer.clear()
                 break
@@ -132,10 +138,11 @@ class QuranReaderApp:
         elif key in (10, 13, curses.KEY_ENTER, curses.KEY_RIGHT, ord("l")):
             self._load_surah(self.state.selected_surah_index)
             self.state.focus = "ayahs"
+            self.preview_due_at = None
             return True
 
         if self.state.selected_surah_index != previous_index:
-            self._load_surah(self.state.selected_surah_index)
+            self.preview_due_at = time.monotonic() + 0.4
         return True
 
     def _handle_ayah_keys(self, key: int) -> bool:
@@ -143,8 +150,14 @@ class QuranReaderApp:
             return True
 
         if self.kitty_renderer.is_supported():
-            total_lines = self.kitty_renderer.get_total_lines(self.state.loaded_surah, self._ayah_panel_width())
-            visible_height = max(1, self._content_height())
+            panel_width = self._ayah_panel_width()
+            panel_height = self._ayah_panel_height()
+            total_lines = self.kitty_renderer.get_total_lines(self.state.loaded_surah, panel_width)
+            visible_height = self.kitty_renderer.get_visible_line_count(
+                self.state.loaded_surah,
+                panel_width,
+                panel_height,
+            )
         else:
             total_lines = len(self._build_ayah_lines(self._ayah_width()))
             visible_height = self._content_height()
@@ -182,6 +195,15 @@ class QuranReaderApp:
             self.kitty_renderer.last_place = None
         except QuranAPIError as exc:
             self.state.status = f"Failed to load surah {surah.number}: {exc}"
+
+    def _run_pending_preview(self) -> bool:
+        if self.preview_due_at is None or self.state.focus != "surahs":
+            return False
+        if time.monotonic() < self.preview_due_at:
+            return False
+        self.preview_due_at = None
+        self._load_surah(self.state.selected_surah_index)
+        return True
 
     def _refresh_current_surah(self) -> None:
         try:
@@ -294,20 +316,15 @@ class QuranReaderApp:
 
             number_label = f"{surah.number:>3}."
             english_label = surah.english_name
-            arabic_label = self._render_arabic(surah.arabic_name) if surah.arabic_name else ""
-            english_width = min(len(english_label), max(0, inner_width // 2))
+            english_width = max(0, inner_width - 5)
             self._safe_addnstr(y + row, x + 1, number_label, len(number_label), attr)
             self._safe_addnstr(y + row, x + 6, english_label, english_width, attr)
-            if arabic_label:
-                arabic_width = min(len(arabic_label), max(0, inner_width - 6 - english_width - 1))
-                arabic_x = x + width - 1 - arabic_width
-                self._safe_addnstr(y + row, arabic_x, arabic_label, arabic_width, attr)
 
     def _draw_ayah_panel(self, y: int, x: int, height: int, width: int) -> None:
         title = "Ayahs"
         if self.state.loaded_surah is not None:
             summary = self.state.loaded_surah.summary
-            title = f"{summary.number}. {self._render_arabic(summary.arabic_name)}"
+            title = f"{summary.number}. {summary.english_name}"
         self._draw_box(y, x, height, width, title)
 
         if self.state.loaded_surah is None:
@@ -370,6 +387,9 @@ class QuranReaderApp:
         surah_width = max(MIN_SURAH_PANEL_WIDTH, min(42, width // 3))
         ayah_x = surah_width + PANEL_GAP
         return max(10, width - ayah_x - 2)
+
+    def _ayah_panel_height(self) -> int:
+        return max(4, self.stdscr.getmaxyx()[0] - 3)
 
     def _build_ayah_lines(self, width: int) -> list[tuple[str, str]]:
         if self.state.loaded_surah is None:
