@@ -10,6 +10,7 @@ ARABIC_RUN_RE = re.compile(
     r"[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF ]+"
 )
 RLM = "\u200f"
+AYAH_SEPARATOR_RE = re.compile(r"\s*۝\s*")
 
 
 ARABIC_DISPLAY_MODES = {"plain", "bidi", "reshaped"}
@@ -27,6 +28,12 @@ def prepare_terminal_text_with_mode(text: str, mode: str) -> str:
     if not text:
         return text
     return ARABIC_RUN_RE.sub(lambda match: _transform_run(match, mode), text)
+
+
+def normalize_ayah_separators(text: str) -> str:
+    if not text:
+        return text
+    return AYAH_SEPARATOR_RE.sub("  ۝  ", text).strip()
 
 
 def _transform_run(match: re.Match[str], mode: str) -> str:

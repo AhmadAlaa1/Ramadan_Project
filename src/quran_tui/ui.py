@@ -13,6 +13,7 @@ from .model import SurahDetails, SurahSummary
 from .rendering import (
     ARABIC_DISPLAY_MODES,
     DEFAULT_ARABIC_DISPLAY_MODE,
+    normalize_ayah_separators,
     prepare_terminal_text_with_mode,
 )
 
@@ -444,7 +445,10 @@ class QuranReaderApp:
             header = f"{index + 1}. {zikr.repeat}"
             self._safe_addnstr(row, 2, header, width - 4, attr | curses.A_BOLD)
             row += 1
-            wrapped = textwrap.wrap(self._render_arabic(zikr.text), max(20, width - 6)) or [zikr.text]
+            wrapped = textwrap.wrap(
+                self._render_arabic(normalize_ayah_separators(zikr.text)),
+                max(20, width - 6),
+            ) or [zikr.text]
             for line in wrapped:
                 if row >= height - 2:
                     break

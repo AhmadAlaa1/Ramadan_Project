@@ -11,7 +11,7 @@ from pathlib import Path
 from .api import QuranAPI
 from .azkar import MORNING_AZKAR, NIGHT_AZKAR
 
-HTML_VERSION = "1"
+HTML_VERSION = "2"
 
 
 def open_browser_fallback(api: QuranAPI, view: str = "quran", surah_number: int = 1, azkar_kind: str = "morning") -> Path:
@@ -212,6 +212,13 @@ def build_browser_fallback(
       unicode-bidi: bidi-override;
       direction: ltr;
     }}
+    .ayah-sep {{
+      display: inline-block;
+      margin: 0 0.38em;
+      color: var(--muted);
+      font-family: "Noto Naskh Arabic", "Amiri", serif;
+      transform: translateY(-0.02em);
+    }}
     .azkar-title {{
       text-align: center;
       font-size: 2rem;
@@ -286,6 +293,10 @@ def build_browser_fallback(
       return s.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
     }}
 
+    function formatArabicText(s) {{
+      return escapeHtml(s).replaceAll("۝", `<span class="ayah-sep">۝</span>`);
+    }}
+
     function renderTabs() {{
       quranTab.classList.toggle("active", currentView === "quran");
       morningTab.classList.toggle("active", currentView === "morning");
@@ -336,7 +347,7 @@ def build_browser_fallback(
           startIndex = 1;
         }}
       }}
-      const renderedAyahs = ayahs.slice(startIndex).map((text, i) => `${{escapeHtml(text)}} ${{ayahLabel(i + 1 + startIndex)}}`);
+      const renderedAyahs = ayahs.slice(startIndex).map((text, i) => `${{formatArabicText(text)}} ${{ayahLabel(i + 1 + startIndex)}}`);
       page.innerHTML = `
         <div class="meta">${{summary.number}}. ${{summary.english_name}} | ${{summary.number_of_ayahs}} ayahs | ${{summary.revelation_type}}</div>
         <div class="ornament">۞ ۞ ۞</div>
@@ -355,7 +366,7 @@ def build_browser_fallback(
         ${{items.map((item, index) => `
           <section class="zikr">
             <div class="zikr-head">${{index + 1}}. ${{item.repeat}}</div>
-            <div class="zikr-text">${{escapeHtml(item.text)}}</div>
+            <div class="zikr-text">${{formatArabicText(item.text)}}</div>
             ${{item.note ? `<div class="zikr-note">${{escapeHtml(item.note)}}</div>` : ""}}
           </section>
         `).join("")}}

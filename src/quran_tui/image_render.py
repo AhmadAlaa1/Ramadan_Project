@@ -13,6 +13,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 from .azkar import Zikr
 from .model import SurahDetails
+from .rendering import normalize_ayah_separators
 from .theme import get_render_theme
 
 ARABIC_FONT_CANDIDATES = [
@@ -586,7 +587,12 @@ class KittyAzkarRenderer:
             selected = index == selected_index
             header_color = "#ffffff" if selected else self.theme.subheader
             text_color = "#ffffff" if selected else self.theme.text
-            wrapped = self._wrap_arabic_text(draw, item.text, self.text_font, available_width)
+            wrapped = self._wrap_arabic_text(
+                draw,
+                normalize_ayah_separators(item.text),
+                self.text_font,
+                available_width,
+            )
             estimated_height = 30 + (len(wrapped) * 40) + (28 if item.note else 0) + 18
             if y + estimated_height > max_y:
                 break
