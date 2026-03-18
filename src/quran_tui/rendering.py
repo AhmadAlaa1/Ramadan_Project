@@ -3,8 +3,8 @@ from __future__ import annotations
 import os
 import re
 
-import arabic_reshaper
-from bidi.algorithm import get_display
+from ._vendor import arabic_reshaper
+from ._vendor.bidi.algorithm import get_display
 
 ARABIC_RUN_RE = re.compile(
     r"[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF ]+"

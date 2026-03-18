@@ -36,6 +36,35 @@ python3 -m pip install -e .
 quran-tui
 ```
 
+## RPM Packaging
+
+Build a source tarball from the project root:
+
+```bash
+tar -czf quran-terminal-reader-0.1.0.tar.gz \
+  --exclude __pycache__ \
+  --exclude '*.pyc' \
+  --transform 's,^\.,quran-terminal-reader-0.1.0,' .
+```
+
+Then build the RPM:
+
+```bash
+rpmbuild -ta quran-terminal-reader-0.1.0.tar.gz
+```
+
+Or use the included spec directly:
+
+```bash
+rpmbuild -ba packaging/quran-terminal-reader.spec
+```
+
+Install with:
+
+```bash
+sudo dnf install ./noarch/quran-terminal-reader-0.1.0-1*.rpm
+```
+
 ## Controls
 
 - Main menu: `Up` / `Down` then `Enter`

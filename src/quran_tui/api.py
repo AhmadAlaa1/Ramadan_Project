@@ -13,8 +13,8 @@ class QuranAPIError(RuntimeError):
 
 class QuranAPI:
     def __init__(self, data_dir: Path | None = None) -> None:
-        base_dir = Path(__file__).resolve().parents[2]
-        self.data_dir = data_dir or (base_dir / "data")
+        package_dir = Path(__file__).resolve().parent
+        self.data_dir = data_dir or (package_dir / "data")
         self._surah_list_payload: list[dict[str, Any]] | None = None
         self._surah_summary_map: dict[int, dict[str, Any]] | None = None
         self._surah_map_payload: dict[int, dict[str, Any]] | None = None
