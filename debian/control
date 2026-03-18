@@ -1,0 +1,29 @@
+Source: quran-terminal-reader
+Section: utils
+Priority: optional
+Maintainer: Codex <codex@example.invalid>
+Build-Depends:
+ debhelper-compat (= 13),
+ dh-python,
+ pybuild-plugin-pyproject,
+ python3-all,
+ python3-pil,
+ python3-setuptools
+Standards-Version: 4.7.0
+Rules-Requires-Root: no
+Homepage: https://example.invalid/quran-terminal-reader
+
+Package: quran-terminal-reader
+Architecture: all
+Depends:
+ kitty,
+ python3 (>= 3.11),
+ python3-pil,
+ ${misc:Depends},
+ ${python3:Depends}
+Description: Terminal TUI for reading the Quran and Azkar offline
+ Quran Terminal Reader is an offline terminal application for reading the
+ Quran and Azkar with a curses interface.
+ .
+ When running inside kitty, the reading pane uses image rendering for better
+ Arabic text display quality.
