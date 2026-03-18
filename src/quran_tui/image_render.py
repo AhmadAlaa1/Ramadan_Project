@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import os
+import re
 import subprocess
 import tempfile
 import textwrap
@@ -16,11 +17,12 @@ from .theme import get_render_theme
 
 DEFAULT_FONT_PATH = "/usr/share/fonts/google-noto-vf/NotoNaskhArabic[wght].ttf"
 DEFAULT_UI_FONT_PATH = "/usr/share/fonts/google-noto-vf/NotoSans[wght].ttf"
-RENDER_VERSION = "25"
+RENDER_VERSION = "31"
 BASMALA_PREFIXES = (
     "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
     "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ",
 )
+AYAH_MARKER_RE = re.compile(r"\[\[AYAH:(\d+)\]\]")
 
 
 class KittyAyahRenderer:
@@ -74,7 +76,7 @@ class KittyAyahRenderer:
 
     def get_total_lines(self, surah: SurahDetails, width_cells: int) -> int:
         width_px = max(400, width_cells * 14)
-        width_px = max(420, int((width_px - 40) * 0.72))
+        width_px = max(420, int((width_px - 40) * 0.86))
         extra_lines = 2 if self._extract_basmala(surah) else 0
         return len(self._get_wrapped_lines(surah, width_px)) + extra_lines
 
@@ -83,7 +85,7 @@ class KittyAyahRenderer:
         height_px = max(240, height_cells * 28)
         outer_margin_y = 18
         y = outer_margin_y + 112
-        line_height = 42
+        line_height = 44
         if self._extract_basmala(surah):
             y += line_height * 3 + 10
         return max(1, (height_px - y - 38) // line_height)
@@ -201,10 +203,10 @@ class KittyAyahRenderer:
             anchor="la",
         )
 
-        y = outer_margin_y + 124
-        line_height = 42
-        available_width = max(420, int((width_px - (outer_margin_x * 2)) * 0.72))
-        content_center_x = width_px // 2
+        y = outer_margin_y + 136
+        line_height = 44
+        available_width = max(500, int((width_px - (outer_margin_x * 2)) * 0.80))
+        content_right_x = width_px - outer_margin_x - 68
 
         basmala = self._extract_basmala(surah)
         if basmala and top_line <= 1:
@@ -239,7 +241,7 @@ class KittyAyahRenderer:
                 language="ar",
             )
             # Keep the basmala visually separate from the ayah body.
-            y += line_height * 3 + 22
+            y += line_height * 3 + 28
 
         all_lines = self._get_wrapped_lines(surah, available_width)
         line_offset = max(0, top_line - (2 if basmala else 0))
@@ -247,15 +249,7 @@ class KittyAyahRenderer:
         visible_lines = all_lines[line_offset : line_offset + visible_line_count]
 
         for line_text in visible_lines:
-            draw.text(
-                (content_center_x, y),
-                line_text,
-                font=self.text_font,
-                fill=self.theme.text,
-                anchor="ma",
-                direction="rtl",
-                language="ar",
-            )
+            self._draw_line_with_markers(draw, content_right_x, y, line_text)
             y += line_height
 
         image.save(image_path)
@@ -305,16 +299,33 @@ class KittyAyahRenderer:
     def _build_lines(self, surah: SurahDetails, draw: ImageDraw.ImageDraw, font: ImageFont.FreeTypeFont, width_px: int) -> list[str]:
         lines: list[str] = []
         basmala = self._extract_basmala(surah)
+        token_groups: list[list[str]] = []
         for index, ayah in enumerate(surah.ayahs):
             ayah_text = ayah.text.strip()
             if index == 0 and basmala:
                 ayah_text = self._strip_basmala_prefix(ayah_text)
                 if not ayah_text:
                     continue
-            marker = f" ۝ {self._to_arabic_indic_number(ayah.number_in_surah)}"
-            wrapped = self._wrap_arabic_text(draw, ayah_text, font, width_px, suffix=marker)
-            wrapped[-1] = f"{wrapped[-1]}{marker}"
-            lines.extend(wrapped)
+            words = ayah_text.split()
+            if not words:
+                continue
+            token_groups.append(words + [f"[[AYAH:{ayah.number_in_surah}]]"])
+
+        current_tokens: list[str] = []
+        for group_index, group in enumerate(token_groups):
+            for token in group:
+                candidate_tokens = current_tokens + [token]
+                candidate_text = " ".join(candidate_tokens)
+                if current_tokens and self._measure_mixed_text(draw, candidate_text, font) > width_px:
+                    is_last_line = False
+                    lines.append(self._justify_arabic_line(draw, current_tokens, font, width_px, is_last_line))
+                    current_tokens = [token]
+                else:
+                    current_tokens = candidate_tokens
+            if group_index == len(token_groups) - 1:
+                continue
+        if current_tokens:
+            lines.append(" ".join(current_tokens))
         return lines
 
     def _wrap_arabic_text(
@@ -346,10 +357,105 @@ class KittyAyahRenderer:
         lines.append(current)
         return lines
 
-    def _to_arabic_indic_number(self, value: int) -> str:
-        digits = "٠١٢٣٤٥٦٧٨٩"
-        return "".join(digits[int(char)] for char in str(value))
+    def _justify_arabic_line(
+        self,
+        draw: ImageDraw.ImageDraw,
+        tokens: list[str],
+        font: ImageFont.FreeTypeFont,
+        width_px: int,
+        is_last_line: bool,
+    ) -> str:
+        text = " ".join(tokens)
+        if is_last_line or len(tokens) < 3:
+            return text
+        if tokens[-1].startswith("[[AYAH:") and tokens[-1].endswith("]]"):
+            return text
+        current_width = self._measure_mixed_text(draw, text, font)
+        if current_width >= width_px * 0.9:
+            return text
 
+        space_width = draw.textlength(" ", font=font, direction="rtl", language="ar")
+        if space_width <= 0:
+            return text
+
+        gaps = len(tokens) - 1
+        extra_spaces = int((width_px - current_width) / space_width)
+        if extra_spaces <= 0:
+            return text
+        extra_spaces = min(extra_spaces, gaps * 3)
+
+        base_extra = extra_spaces // gaps
+        remainder = extra_spaces % gaps
+        parts: list[str] = []
+        for index, token in enumerate(tokens[:-1]):
+            parts.append(token)
+            gap_spaces = 1 + base_extra + (1 if index < remainder else 0)
+            parts.append(" " * gap_spaces)
+        parts.append(tokens[-1])
+        return "".join(parts)
+
+    def _measure_plain_text(
+        self,
+        draw: ImageDraw.ImageDraw,
+        text: str,
+        font: ImageFont.FreeTypeFont,
+    ) -> float:
+        return draw.textlength(text, font=font, direction="rtl", language="ar")
+
+    def _draw_line_with_markers(self, draw: ImageDraw.ImageDraw, right_x: int, y: int, text: str) -> None:
+        parts: list[tuple[str, str]] = []
+        last_end = 0
+        for match in AYAH_MARKER_RE.finditer(text):
+            if match.start() > last_end:
+                parts.append(("text", text[last_end:match.start()]))
+            parts.append(("marker", match.group(1)))
+            last_end = match.end()
+        if last_end < len(text):
+            parts.append(("text", text[last_end:]))
+
+        x = float(right_x)
+        for kind, value in parts:
+            if kind == "text":
+                if not value:
+                    continue
+                draw.text(
+                    (x, y),
+                    value,
+                    font=self.text_font,
+                    fill=self.theme.text,
+                    anchor="ra",
+                    direction="rtl",
+                    language="ar",
+                )
+                x -= self._measure_plain_text(draw, value, self.text_font)
+            else:
+                label = f"({value})"
+                draw.text(
+                    (x, y),
+                    label,
+                    font=self.num_font,
+                    fill=self.theme.text,
+                    anchor="ra",
+                )
+                x -= draw.textlength(label, font=self.num_font) + draw.textlength(" ", font=self.num_font)
+
+    def _measure_mixed_text(
+        self,
+        draw: ImageDraw.ImageDraw,
+        text: str,
+        font: ImageFont.FreeTypeFont,
+    ) -> float:
+        width = 0.0
+        last_end = 0
+        for match in AYAH_MARKER_RE.finditer(text):
+            if match.start() > last_end:
+                width += self._measure_plain_text(draw, text[last_end:match.start()], font)
+            label = f"({match.group(1)})"
+            width += draw.textlength(label, font=self.num_font) + draw.textlength(" ", font=self.num_font)
+            last_end = match.end()
+        if last_end < len(text):
+            width += self._measure_plain_text(draw, text[last_end:], font)
+        return width
 
 def _hex_to_rgba(value: str, alpha: int) -> tuple[int, int, int, int]:
     value = value.lstrip("#")

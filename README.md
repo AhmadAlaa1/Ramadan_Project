@@ -65,6 +65,38 @@ Install with:
 sudo dnf install ./noarch/quran-terminal-reader-0.1.0-1*.rpm
 ```
 
+## Debian Packaging
+
+Build dependencies:
+
+```bash
+sudo apt install \
+  debhelper \
+  dh-python \
+  pybuild-plugin-pyproject \
+  python3-all \
+  python3-pil \
+  python3-setuptools
+```
+
+Build the package from the project root:
+
+```bash
+dpkg-buildpackage -us -uc
+```
+
+Install the resulting package:
+
+```bash
+sudo apt install ../quran-terminal-reader_0.1.0-1_all.deb
+```
+
+Then run:
+
+```bash
+quran-tui
+```
+
 ## Controls
 
 - Main menu: `Up` / `Down` then `Enter`
