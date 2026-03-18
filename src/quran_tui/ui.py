@@ -1,10 +1,6 @@
 from __future__ import annotations
 
 import curses
-import os
-import shlex
-import shutil
-import subprocess
 import textwrap
 import time
 from dataclasses import dataclass
@@ -59,8 +55,6 @@ class QuranReaderApp:
             "| |_| | |_| | | | (_| | | | || |   | |   | |  ",
             " \\__\\_\\\\__,_|_|  \\__,_|_| |_|\\_|   \\_|   \\_|  ",
         ]
-        self.kitty_available = bool(shutil.which("kitty"))
-        self.raw_terminal_warning = self._should_warn_for_terminal()
 
     def run(self) -> None:
         curses.curs_set(0)
@@ -68,8 +62,6 @@ class QuranReaderApp:
         curses.use_default_colors()
         self._init_colors()
         self._bootstrap()
-        if self.raw_terminal_warning:
-            self.state.screen = "warning"
 
         while True:
             if self.needs_redraw:
@@ -101,15 +93,13 @@ class QuranReaderApp:
 
     def _handle_key(self, key: int) -> bool:
         if key in (ord("q"), 27):
-            if self.state.screen in {"menu", "warning"}:
+            if self.state.screen == "menu":
                 return False
             self.kitty_azkar_renderer.clear()
             self._go_to_menu()
             return True
         if self.state.screen == "menu":
             return self._handle_menu_keys(key)
-        if self.state.screen == "warning":
-            return self._handle_warning_keys(key)
         if self.state.screen == "azkar":
             handled = self._handle_azkar_keys(key)
             self.needs_redraw = True
@@ -162,22 +152,6 @@ class QuranReaderApp:
                 self.state.azkar_top_line = 0
                 self.state.focus = "ayahs"
                 self.state.status = f"Opened {selected}."
-        self.needs_redraw = True
-        return True
-
-    def _handle_warning_keys(self, key: int) -> bool:
-        if key in (ord("c"), ord("C"), 10, 13, curses.KEY_ENTER):
-            self.state.screen = "menu"
-            self.state.status = "Continuing in raw terminal mode."
-            self.needs_redraw = True
-            return True
-        if key in (ord("o"), ord("O")):
-            self._open_browser_current_view()
-            self.needs_redraw = True
-            return True
-        if key in (ord("k"), ord("K")) and self.kitty_available:
-            self._open_in_kitty()
-            return False
         self.needs_redraw = True
         return True
 
@@ -403,10 +377,6 @@ class QuranReaderApp:
             self._draw_menu(height, width)
             self.stdscr.refresh()
             return
-        if self.state.screen == "warning":
-            self._draw_warning(height, width)
-            self.stdscr.refresh()
-            return
         if self.state.screen == "azkar":
             self._draw_azkar_screen(height, width)
             self.stdscr.refresh()
@@ -443,32 +413,6 @@ class QuranReaderApp:
 
         help_text = "Enter select | q quit"
         self._safe_addnstr(height - 2, max(0, center_x - len(help_text) // 2), help_text, len(help_text))
-
-    def _draw_warning(self, height: int, width: int) -> None:
-        title = "Unsupported Terminal"
-        lines = [
-            "This terminal is likely to render Quranic Arabic incorrectly.",
-            "Use the browser fallback or continue in raw terminal mode.",
-            "",
-            "o  Open browser fallback",
-            "c  Continue in terminal anyway",
-            "q  Quit",
-        ]
-        if self.kitty_available:
-            lines.insert(5, "k  Open in kitty")
-
-        top = max(2, height // 2 - 6)
-        title_x = max(0, (width - len(title)) // 2)
-        self._safe_addnstr(top, title_x, title, len(title), curses.A_BOLD)
-
-        for offset, line in enumerate(lines, start=2):
-            x = max(0, (width - len(line)) // 2)
-            self._safe_addnstr(top + offset, x, line, len(line))
-
-        if self.state.browser_fallback_path:
-            opened = f"Opened: {self.state.browser_fallback_path}"
-            x = max(0, (width - min(len(opened), width - 2)) // 2)
-            self._safe_addnstr(min(height - 3, top + len(lines) + 4), x, opened, width - 2)
 
     def _draw_azkar_screen(self, height: int, width: int) -> None:
         title = "Morning Azkar" if self.state.azkar_kind == "morning" else "Night Azkar"
@@ -670,31 +614,6 @@ class QuranReaderApp:
         height = self.stdscr.getmaxyx()[0]
         # Azkar entries are multi-line and much taller than a simple list row.
         return max(1, (height - 4) // 6)
-
-    def _should_warn_for_terminal(self) -> bool:
-        if os.environ.get("KITTY_WINDOW_ID"):
-            return False
-        if os.environ.get("QURAN_TUI_DISABLE_TERMINAL_WARNING") == "1":
-            return False
-        return True
-
-    def _open_in_kitty(self) -> None:
-        if not self.kitty_available:
-            return
-        root_dir = os.getcwd()
-        env = os.environ.copy()
-        env["QURAN_TUI_AUTO_KITTY"] = "1"
-        subprocess.Popen(
-            [
-                "kitty",
-                "--title",
-                "Quran Terminal Reader",
-                "sh",
-                "-lc",
-                f"cd {shlex.quote(root_dir)} && python3 main.py",
-            ],
-            env=env,
-        )
 
     def _open_browser_current_view(self) -> None:
         try:
