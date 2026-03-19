@@ -55,7 +55,7 @@ This repo includes a GitHub Pages-ready landing page at [docs/index.html](/home/
 
 GitHub repo:
 
-- `AhmadAlaa1/noorterm`
+- [Main Repo](https://github.com/AhmadAlaa1/NoorTerm)
 - [Download Latest Release](https://github.com/AhmadAlaa1/NoorTerm/releases)
 
 Install command:
