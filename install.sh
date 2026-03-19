@@ -3,7 +3,7 @@ set -euo pipefail
 
 APP_NAME="DuaTerm"
 PROJECT_NAME="duaterm"
-GITHUB_REPO="${DUATERM_GITHUB_REPO:-yourusername/duaterm}"
+GITHUB_REPO="${DUATERM_GITHUB_REPO:-AhmadAlaa1/duaterm}"
 API_URL="https://api.github.com/repos/${GITHUB_REPO}/releases/latest"
 
 require_cmd() {
@@ -12,12 +12,6 @@ require_cmd() {
     exit 1
   }
 }
-
-if [[ "$GITHUB_REPO" == "yourusername/duaterm" ]]; then
-  echo "Set DUATERM_GITHUB_REPO to your GitHub repo, for example:" >&2
-  echo "  DUATERM_GITHUB_REPO='yourname/duaterm' bash install.sh" >&2
-  exit 1
-fi
 
 require_cmd curl
 require_cmd python3
