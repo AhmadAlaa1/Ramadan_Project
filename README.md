@@ -1,8 +1,8 @@
-# DuaTerm
+# NoorTerm
 
 > Prayer in your Terminal
 
-DuaTerm is a terminal product for reading the Quran and Azkar with a calm TUI, offline bundled data, and a `kitty`-powered reading pane for reliable Arabic rendering.
+NoorTerm is a terminal product for reading the Quran and Azkar with a calm TUI, offline bundled data, and a `kitty`-powered reading pane for reliable Arabic rendering.
 
 ```text
 ██████╗ ██╗   ██╗ █████╗ ████████╗███████╗██████╗ ███╗   ███╗
@@ -28,7 +28,7 @@ DuaTerm is a terminal product for reading the Quran and Azkar with a calm TUI, o
 python3 main.py
 ```
 
-If `kitty` is installed, DuaTerm relaunches itself there automatically for the best Arabic rendering.
+If `kitty` is installed, NoorTerm relaunches itself there automatically for the best Arabic rendering.
 
 You can also run:
 
@@ -40,7 +40,7 @@ Or install it locally:
 
 ```bash
 python3 -m pip install -e .
-duaterm
+noorterm
 ```
 
 The legacy entrypoint still works too:
@@ -49,20 +49,18 @@ The legacy entrypoint still works too:
 quran-tui
 ```
 
-The previous `noorterm` entrypoint still works too.
-
 ## GitHub Landing Page
 
 This repo includes a GitHub Pages-ready landing page at [docs/index.html](/home/user/GitHub/Ramadan_Project/docs/index.html) and a one-command installer at [install.sh](/home/user/GitHub/Ramadan_Project/install.sh).
 
 GitHub repo:
 
-- `AhmadAlaa1/duaterm`
+- `AhmadAlaa1/noorterm`
 
 Install command:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/AhmadAlaa1/duaterm/main/install.sh | DUATERM_GITHUB_REPO=AhmadAlaa1/duaterm bash
+curl -fsSL https://raw.githubusercontent.com/AhmadAlaa1/noorterm/main/install.sh | NOORTERM_GITHUB_REPO=AhmadAlaa1/noorterm bash
 ```
 
 The installer auto-detects:

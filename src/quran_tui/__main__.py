@@ -25,7 +25,8 @@ def _maybe_relaunch_in_kitty() -> None:
         return
     if os.environ.get("QURAN_TUI_DISABLE_AUTO_KITTY") == "1":
         return
-    if not sys.stdout.isatty():
+    has_graphical_session = bool(os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY"))
+    if not sys.stdout.isatty() and not has_graphical_session:
         return
 
     kitty = shutil.which("kitty")
@@ -52,7 +53,7 @@ def _maybe_relaunch_in_kitty() -> None:
     )
     os.execvpe(
         kitty,
-        [kitty, "--title", "DuaTerm", "sh", "-lc", shell_cmd],
+        [kitty, "--title", "NoorTerm", "sh", "-lc", shell_cmd],
         env,
     )
 

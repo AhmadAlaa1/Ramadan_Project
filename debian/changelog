@@ -1,5 +1,5 @@
-duaterm (0.1.0-1) unstable; urgency=medium
+noorterm (0.1.0-1) unstable; urgency=medium
 
-  * Rebrand package as DuaTerm.
+  * Rebrand package as NoorTerm.
 
- -- DuaTerm Maintainers <maintainers@duaterm.invalid>  Wed, 18 Mar 2026 12:30:00 +0200
+ -- NoorTerm Maintainers <maintainers@noorterm.invalid>  Wed, 18 Mar 2026 12:30:00 +0200

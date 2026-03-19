@@ -21,15 +21,15 @@ from .rendering import (
 PANEL_GAP = 1
 MIN_SURAH_PANEL_WIDTH = 34
 FULL_LOGO = [
-    "██████╗ ██╗   ██╗ █████╗ ████████╗███████╗██████╗ ███╗   ███╗",
-    "██╔══██╗██║   ██║██╔══██╗╚══██╔══╝██╔════╝██╔══██╗████╗ ████║",
-    "██║  ██║██║   ██║███████║   ██║   █████╗  ██████╔╝██╔████╔██║",
-    "██║  ██║██║   ██║██╔══██║   ██║   ██╔══╝  ██╔══██╗██║╚██╔╝██║",
-    "██████╔╝╚██████╔╝██║  ██║   ██║   ███████╗██║  ██║██║ ╚═╝ ██║",
-    "╚═════╝  ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝",
+    "███╗   ██╗ ██████╗  ██████╗ ██████╗ ████████╗███████╗██████╗ ███╗   ███╗",
+    "████╗  ██║██╔═══██╗██╔═══██╗██╔══██╗╚══██╔══╝██╔════╝██╔══██╗████╗ ████║",
+    "██╔██╗ ██║██║   ██║██║   ██║██████╔╝   ██║   █████╗  ██████╔╝██╔████╔██║",
+    "██║╚██╗██║██║   ██║██║   ██║██╔══██╗   ██║   ██╔══╝  ██╔══██╗██║╚██╔╝██║",
+    "██║ ╚████║╚██████╔╝╚██████╔╝██║  ██║   ██║   ███████╗██║  ██║██║ ╚═╝ ██║",
+    "╚═╝  ╚═══╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝",
 ]
 MINI_LOGO = [
-    "[ DuaTerm ]",
+    "[ NoorTerm ]",
     "Prayer in your Terminal",
 ]
 
@@ -126,7 +126,7 @@ class QuranReaderApp:
             pass
 
     def _show_splash(self) -> None:
-        if os.environ.get("DUATERM_NO_SPLASH") == "1":
+        if os.environ.get("NOORTERM_NO_SPLASH") == "1":
             return
         height, width = self.stdscr.getmaxyx()
         logo = self.logo if width >= max(len(line) for line in self.logo) + 4 else self.small_logo
@@ -139,7 +139,7 @@ class QuranReaderApp:
             x = max(0, center_x - len(inner_line) // 2)
             self._safe_addnstr(top + inner_offset, x, inner_line, len(inner_line), attr)
 
-        title = "DuaTerm"
+        title = "NoorTerm"
         subtitle = "Prayer in your Terminal"
         self._safe_addnstr(top + len(logo) + 1, max(0, center_x - len(title) // 2), title, len(title), curses.A_BOLD)
         self._safe_addnstr(
@@ -515,7 +515,7 @@ class QuranReaderApp:
             attr = self.accent_attr
             self._safe_addnstr(top + offset, x, line, len(line), attr)
 
-        title = "DuaTerm"
+        title = "NoorTerm"
         subtitle = "Prayer in your Terminal"
         self._safe_addnstr(top + len(logo) + 1, max(0, center_x - len(title) // 2), title, len(title), curses.A_BOLD)
         self._safe_addnstr(

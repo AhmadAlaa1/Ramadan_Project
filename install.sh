@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-APP_NAME="DuaTerm"
-PROJECT_NAME="duaterm"
-GITHUB_REPO="${DUATERM_GITHUB_REPO:-AhmadAlaa1/duaterm}"
+APP_NAME="NoorTerm"
+PROJECT_NAME="noorterm"
+GITHUB_REPO="${NOORTERM_GITHUB_REPO:-AhmadAlaa1/noorterm}"
 API_URL="https://api.github.com/repos/${GITHUB_REPO}/releases/latest"
 
 require_cmd() {
@@ -104,4 +104,4 @@ fi
 echo
 echo "${APP_NAME} installed."
 echo "Run it with:"
-echo "  duaterm"
+echo "  noorterm"

@@ -1,7 +1,7 @@
-Source: duaterm
+Source: noorterm
 Section: utils
 Priority: optional
-Maintainer: DuaTerm Maintainers <maintainers@duaterm.invalid>
+Maintainer: NoorTerm Maintainers <maintainers@noorterm.invalid>
 Build-Depends:
  debhelper-compat (= 13),
  dh-python,
@@ -11,9 +11,9 @@ Build-Depends:
  python3-setuptools
 Standards-Version: 4.7.0
 Rules-Requires-Root: no
-Homepage: https://example.invalid/duaterm
+Homepage: https://example.invalid/noorterm
 
-Package: duaterm
+Package: noorterm
 Architecture: all
 Depends:
  kitty,
@@ -24,7 +24,7 @@ Depends:
  ${misc:Depends},
  ${python3:Depends}
 Description: Terminal TUI for reading the Quran and Azkar offline
- DuaTerm is an offline terminal application for reading the
+ NoorTerm is an offline terminal application for reading the
  Quran and Azkar with a curses interface.
  .
  When running inside kitty, the reading pane uses image rendering for better

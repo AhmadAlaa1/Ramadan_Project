@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 
-export PYBUILD_NAME = duaterm
+export PYBUILD_NAME = noorterm
 
 %:
 	dh $@ --buildsystem=pybuild

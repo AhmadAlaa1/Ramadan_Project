@@ -1,9 +1,9 @@
-pkgname=duaterm
+pkgname=noorterm
 pkgver=0.1.0
 pkgrel=1
 pkgdesc="Terminal TUI for reading the Quran and Azkar offline"
 arch=('any')
-url="https://example.invalid/duaterm"
+url="https://example.invalid/noorterm"
 license=('MIT')
 depends=(
   'python'

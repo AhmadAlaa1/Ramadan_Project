@@ -1,10 +1,10 @@
-Name:           duaterm
+Name:           noorterm
 Version:        0.1.0
 Release:        1%{?dist}
 Summary:        Terminal TUI for reading the Quran and Azkar
 
 License:        MIT
-URL:            https://example.invalid/duaterm
+URL:            https://example.invalid/noorterm
 Source0:        %{name}-%{version}.tar.gz
 
 BuildArch:      noarch
@@ -17,7 +17,7 @@ Requires:       google-noto-naskh-arabic-fonts
 Requires:       google-noto-sans-fonts
 
 %description
-DuaTerm is an offline terminal application for reading the Quran
+NoorTerm is an offline terminal application for reading the Quran
 and Azkar with a curses interface and kitty image rendering for high-quality
 Arabic text display.
 
@@ -40,10 +40,9 @@ python3 -m unittest discover -s tests -v
 %files -f %{pyproject_files}
 %license LICENSE
 %doc README.md
-%{_bindir}/duaterm
 %{_bindir}/noorterm
 %{_bindir}/quran-tui
 
 %changelog
-* Wed Mar 18 2026 DuaTerm Maintainers <maintainers@duaterm.invalid> - 0.1.0-1
+* Wed Mar 18 2026 NoorTerm Maintainers <maintainers@noorterm.invalid> - 0.1.0-1
 - Initial RPM package

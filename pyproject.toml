@@ -1,14 +1,13 @@
 [project]
-name = "duaterm"
+name = "noorterm"
 version = "0.1.0"
 description = "Light in your terminal: Quran and Azkar with a calm TUI."
 readme = "README.md"
 requires-python = ">=3.11"
 
 [project.scripts]
-duaterm = "quran_tui.__main__:main"
-quran-tui = "quran_tui.__main__:main"
 noorterm = "quran_tui.__main__:main"
+quran-tui = "quran_tui.__main__:main"
 
 [build-system]
 requires = ["setuptools>=68"]
