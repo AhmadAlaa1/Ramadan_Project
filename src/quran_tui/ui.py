@@ -110,6 +110,16 @@ class QuranReaderApp:
         except curses.error:
             pass
 
+        try:
+            curses.init_pair(1, curses.COLOR_MAGENTA, -1)
+            curses.init_pair(2, curses.COLOR_YELLOW, -1)
+            curses.init_pair(3, curses.COLOR_CYAN, -1)
+            self.accent_attr = curses.color_pair(1) | curses.A_BOLD
+            self.gutter_attr = curses.color_pair(2) | curses.A_BOLD
+            self.secondary_attr = curses.color_pair(3) | curses.A_DIM
+        except curses.error:
+            pass
+
     def _show_splash(self) -> None:
         height, width = self.stdscr.getmaxyx()
         logo = self.logo if width >= max(len(line) for line in self.logo) + 4 else self.small_logo
