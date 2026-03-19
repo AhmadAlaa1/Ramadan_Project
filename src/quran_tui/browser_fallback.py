@@ -81,7 +81,7 @@ def build_browser_fallback(
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>NoorTerm</title>
+  <title>DuaTerm</title>
   <style>
     :root {{
       --bg: #171916;
@@ -262,8 +262,8 @@ def build_browser_fallback(
 <body>
   <div class="app">
     <aside class="panel sidebar">
-      <div class="brand">NoorTerm</div>
-      <div class="brand-tagline">Light in your Terminal</div>
+      <div class="brand">DuaTerm</div>
+      <div class="brand-tagline">Prayer in your Terminal</div>
       <div class="tabs">
         <button id="tab-quran">Quran</button>
         <button id="tab-morning">Morning Azkar</button>

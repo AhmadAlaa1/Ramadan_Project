@@ -8,5 +8,5 @@ export QURAN_TUI_ARABIC_MODE="${QURAN_TUI_ARABIC_MODE:-bidi}"
 export QURAN_TUI_AUTO_KITTY=1
 
 exec kitty \
-  --title "NoorTerm" \
+  --title "DuaTerm" \
   sh -lc "cd '$ROOT_DIR' && python3 main.py"

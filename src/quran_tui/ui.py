@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import curses
+import os
 import textwrap
 import time
 from dataclasses import dataclass
@@ -20,16 +21,16 @@ from .rendering import (
 PANEL_GAP = 1
 MIN_SURAH_PANEL_WIDTH = 34
 FULL_LOGO = [
-    "███╗   ██╗ ██████╗  ██████╗ ██████╗ ████████╗███████╗██████╗ ███╗   ███╗",
-    "████╗  ██║██╔═══██╗██╔═══██╗██╔══██╗╚══██╔══╝██╔════╝██╔══██╗████╗ ████║",
-    "██╔██╗ ██║██║   ██║██║   ██║██████╔╝   ██║   █████╗  ██████╔╝██╔████╔██║",
-    "██║╚██╗██║██║   ██║██║   ██║██╔══██╗   ██║   ██╔══╝  ██╔══██╗██║╚██╔╝██║",
-    "██║ ╚████║╚██████╔╝╚██████╔╝██║  ██║   ██║   ███████╗██║  ██║██║ ╚═╝ ██║",
-    "╚═╝  ╚═══╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝",
+    "██████╗ ██╗   ██╗ █████╗ ████████╗███████╗██████╗ ███╗   ███╗",
+    "██╔══██╗██║   ██║██╔══██╗╚══██╔══╝██╔════╝██╔══██╗████╗ ████║",
+    "██║  ██║██║   ██║███████║   ██║   █████╗  ██████╔╝██╔████╔██║",
+    "██║  ██║██║   ██║██╔══██║   ██║   ██╔══╝  ██╔══██╗██║╚██╔╝██║",
+    "██████╔╝╚██████╔╝██║  ██║   ██║   ███████╗██║  ██║██║ ╚═╝ ██║",
+    "╚═════╝  ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝",
 ]
 MINI_LOGO = [
-    "[ NoorTerm ]",
-    "Light in your Terminal",
+    "[ DuaTerm ]",
+    "Prayer in your Terminal",
 ]
 
 
@@ -49,6 +50,7 @@ class ReaderState:
     azkar_top_line: int = 0
     azkar_kind: str = "morning"
     browser_fallback_path: str | None = None
+    followup_redraw_due_at: float | None = None
 
 
 class QuranReaderApp:
@@ -83,6 +85,9 @@ class QuranReaderApp:
             self._update_input_timeout()
             key = self.stdscr.getch()
             if key == -1:
+                if self._run_followup_redraw():
+                    self.needs_redraw = True
+                    continue
                 if self._run_pending_preview():
                     self.needs_redraw = True
                 continue
@@ -121,22 +126,21 @@ class QuranReaderApp:
             pass
 
     def _show_splash(self) -> None:
+        if os.environ.get("DUATERM_NO_SPLASH") == "1":
+            return
         height, width = self.stdscr.getmaxyx()
         logo = self.logo if width >= max(len(line) for line in self.logo) + 4 else self.small_logo
         top = max(1, height // 2 - len(logo) // 2 - 1)
         center_x = width // 2
         attr = self.accent_attr
 
-        for offset, _line in enumerate(logo):
-            self.stdscr.erase()
-            for inner_offset, inner_line in enumerate(logo[: offset + 1]):
-                x = max(0, center_x - len(inner_line) // 2)
-                self._safe_addnstr(top + inner_offset, x, inner_line, len(inner_line), attr)
-            self.stdscr.refresh()
-            time.sleep(0.04)
+        self.stdscr.erase()
+        for inner_offset, inner_line in enumerate(logo):
+            x = max(0, center_x - len(inner_line) // 2)
+            self._safe_addnstr(top + inner_offset, x, inner_line, len(inner_line), attr)
 
-        title = "Terminal Quran & Azkar"
-        subtitle = "Light in your Terminal"
+        title = "DuaTerm"
+        subtitle = "Prayer in your Terminal"
         self._safe_addnstr(top + len(logo) + 1, max(0, center_x - len(title) // 2), title, len(title), curses.A_BOLD)
         self._safe_addnstr(
             top + len(logo) + 2,
@@ -146,7 +150,7 @@ class QuranReaderApp:
             self.secondary_attr,
         )
         self.stdscr.refresh()
-        time.sleep(0.5)
+        time.sleep(0.12)
 
     def _handle_key(self, key: int) -> bool:
         if key in (ord("q"), 27):
@@ -198,17 +202,25 @@ class QuranReaderApp:
         elif key in (10, 13, curses.KEY_ENTER):
             selected = self.menu_items[self.state.menu_index]
             if selected == "Quran":
+                self.kitty_azkar_renderer.clear()
+                self.kitty_renderer.last_image = None
+                self.kitty_renderer.last_place = None
                 self.state.screen = "quran"
                 self.state.focus = "surahs"
+                self.state.followup_redraw_due_at = time.monotonic() + 0.05
             elif selected == "Open Web UI":
                 self._open_browser_current_view()
             else:
+                self.kitty_renderer.clear()
+                self.kitty_azkar_renderer.last_image = None
+                self.kitty_azkar_renderer.last_place = None
                 self.state.screen = "azkar"
                 self.state.azkar_kind = "morning" if selected == "Morning Azkar" else "night"
                 self.state.azkar_index = 0
                 self.state.azkar_top_line = 0
                 self.state.focus = "ayahs"
                 self.state.status = f"Opened {selected}."
+                self.state.followup_redraw_due_at = time.monotonic() + 0.05
         self.needs_redraw = True
         return True
 
@@ -333,13 +345,26 @@ class QuranReaderApp:
         self._load_surah(self.state.selected_surah_index)
         return True
 
+    def _run_followup_redraw(self) -> bool:
+        if self.state.followup_redraw_due_at is None:
+            return False
+        if time.monotonic() < self.state.followup_redraw_due_at:
+            return False
+        self.state.followup_redraw_due_at = None
+        return True
+
     def _update_input_timeout(self) -> None:
+        deadlines: list[float] = []
         if (
             self.preview_due_at is not None
             and self.state.screen == "quran"
             and self.state.focus == "surahs"
         ):
-            remaining = max(1, int((self.preview_due_at - time.monotonic()) * 1000))
+            deadlines.append(self.preview_due_at)
+        if self.state.followup_redraw_due_at is not None:
+            deadlines.append(self.state.followup_redraw_due_at)
+        if deadlines:
+            remaining = max(1, int((min(deadlines) - time.monotonic()) * 1000))
             self.stdscr.timeout(remaining)
             return
         self.stdscr.timeout(-1)
@@ -435,6 +460,20 @@ class QuranReaderApp:
             self.stdscr.refresh()
             return
         if self.state.screen == "azkar":
+            if self.kitty_azkar_renderer.is_supported():
+                self._draw_azkar_frame(height, width)
+                self.stdscr.refresh()
+                self.kitty_azkar_renderer.draw(
+                    "Morning Azkar" if self.state.azkar_kind == "morning" else "Night Azkar",
+                    self._current_azkar(),
+                    self.state.azkar_top_line,
+                    self.state.azkar_index,
+                    max(10, width - 2),
+                    max(4, height - 2),
+                    1,
+                    1,
+                )
+                return
             self._draw_azkar_screen(height, width)
             self.stdscr.refresh()
             return
@@ -444,6 +483,20 @@ class QuranReaderApp:
         ayah_width = width - ayah_x
 
         self._draw_surah_panel(0, 0, height - 1, surah_width)
+        if self.kitty_renderer.is_supported():
+            self._draw_ayah_frame(0, ayah_x, height - 1, ayah_width)
+            self._draw_status_bar(height - 1, width)
+            self.stdscr.refresh()
+            if self.state.loaded_surah is not None:
+                self.kitty_renderer.draw(
+                    self.state.loaded_surah,
+                    self.state.ayah_top_line,
+                    max(10, ayah_width - 2),
+                    max(4, height - 3),
+                    ayah_x + 1,
+                    1,
+                )
+            return
         self._draw_ayah_panel(0, ayah_x, height - 1, ayah_width)
         self._draw_status_bar(height - 1, width)
         self.stdscr.refresh()
@@ -457,8 +510,8 @@ class QuranReaderApp:
             attr = self.accent_attr
             self._safe_addnstr(top + offset, x, line, len(line), attr)
 
-        title = "Terminal Quran & Azkar"
-        subtitle = "Light in your Terminal"
+        title = "DuaTerm"
+        subtitle = "Prayer in your Terminal"
         self._safe_addnstr(top + len(logo) + 1, max(0, center_x - len(title) // 2), title, len(title), curses.A_BOLD)
         self._safe_addnstr(
             top + len(logo) + 2,
@@ -480,20 +533,8 @@ class QuranReaderApp:
 
     def _draw_azkar_screen(self, height: int, width: int) -> None:
         title = "Morning Azkar" if self.state.azkar_kind == "morning" else "Night Azkar"
-        self._draw_box(0, 0, height - 1, width, title)
+        self._draw_azkar_frame(height, width)
         if self.kitty_azkar_renderer.is_supported():
-            self.kitty_azkar_renderer.draw(
-                title,
-                self._current_azkar(),
-                self.state.azkar_top_line,
-                self.state.azkar_index,
-                max(10, width - 2),
-                max(4, height - 2),
-                1,
-                1,
-            )
-            status = "Esc back | Up/Down move"
-            self._draw_status_bar(height - 1, width, override=f"{title}  {status}")
             return
         content_height = height - 3
         items = self._current_azkar()
@@ -525,6 +566,12 @@ class QuranReaderApp:
         status = "Esc back | Up/Down move"
         self._draw_status_bar(height - 1, width, override=f"{title}  {status}")
 
+    def _draw_azkar_frame(self, height: int, width: int) -> None:
+        title = "Morning Azkar" if self.state.azkar_kind == "morning" else "Night Azkar"
+        self._draw_box(0, 0, height - 1, width, title)
+        status = "Esc back | Up/Down move"
+        self._draw_status_bar(height - 1, width, override=f"{title}  {status}")
+
     def _draw_surah_panel(self, y: int, x: int, height: int, width: int) -> None:
         self._draw_box(y, x, height, width, "Surahs")
         inner_width = width - 2
@@ -546,25 +593,12 @@ class QuranReaderApp:
             self._safe_addnstr(y + row, x + 6, english_label, english_width, attr)
 
     def _draw_ayah_panel(self, y: int, x: int, height: int, width: int) -> None:
-        title = "Ayahs"
-        if self.state.loaded_surah is not None:
-            summary = self.state.loaded_surah.summary
-            title = f"{summary.number}. {summary.english_name}"
-        self._draw_box(y, x, height, width, title)
-
+        self._draw_ayah_frame(y, x, height, width)
         if self.state.loaded_surah is None:
             self._safe_addnstr(y + 1, x + 1, "No surah loaded.", width - 2)
             return
 
         if self.kitty_renderer.is_supported():
-            self.kitty_renderer.draw(
-                self.state.loaded_surah,
-                self.state.ayah_top_line,
-                max(10, width - 2),
-                max(4, height - 2),
-                x + 1,
-                y + 1,
-            )
             return
 
         lines = self._build_ayah_lines(width - 2)
@@ -577,6 +611,13 @@ class QuranReaderApp:
             text_width = min(len(rendered_text), available_width)
             text_x = x + width - 1 - text_width
             self._safe_addnstr(y + row, text_x, rendered_text, text_width)
+
+    def _draw_ayah_frame(self, y: int, x: int, height: int, width: int) -> None:
+        title = "Ayahs"
+        if self.state.loaded_surah is not None:
+            summary = self.state.loaded_surah.summary
+            title = f"{summary.number}. {summary.english_name}"
+        self._draw_box(y, x, height, width, title)
 
     def _draw_status_bar(self, y: int, width: int, override: str | None = None) -> None:
         focus_text = "Surahs" if self.state.focus == "surahs" else "Ayahs"
@@ -658,9 +699,12 @@ class QuranReaderApp:
         return prepare_terminal_text_with_mode(text, self.state.arabic_mode)
 
     def _go_to_menu(self) -> None:
+        self.kitty_renderer.clear()
+        self.kitty_azkar_renderer.clear()
         self.state.screen = "menu"
         self.state.focus = "surahs"
         self.preview_due_at = None
+        self.state.followup_redraw_due_at = None
         self.needs_redraw = True
 
     def _current_azkar(self) -> list[Zikr]:

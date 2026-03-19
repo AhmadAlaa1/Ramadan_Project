@@ -1,8 +1,8 @@
-# NoorTerm
+# DuaTerm
 
-> Light in your Terminal
+> Prayer in your Terminal
 
-NoorTerm is a terminal product for reading the Quran and Azkar with a calm TUI, offline bundled data, and a `kitty`-powered reading pane for reliable Arabic rendering.
+DuaTerm is a terminal product for reading the Quran and Azkar with a calm TUI, offline bundled data, and a `kitty`-powered reading pane for reliable Arabic rendering.
 
 ```text
 ███╗   ██╗ ██████╗  ██████╗ ██████╗ ████████╗███████╗██████╗ ███╗   ███╗
@@ -28,7 +28,7 @@ NoorTerm is a terminal product for reading the Quran and Azkar with a calm TUI, 
 python3 main.py
 ```
 
-If `kitty` is installed, NoorTerm relaunches itself there automatically for the best Arabic rendering.
+If `kitty` is installed, DuaTerm relaunches itself there automatically for the best Arabic rendering.
 
 You can also run:
 
@@ -40,7 +40,7 @@ Or install it locally:
 
 ```bash
 python3 -m pip install -e .
-noorterm
+duaterm
 ```
 
 The legacy entrypoint still works too:
@@ -48,6 +48,8 @@ The legacy entrypoint still works too:
 ```bash
 quran-tui
 ```
+
+The previous `noorterm` entrypoint still works too.
 
 ## Packaging
 

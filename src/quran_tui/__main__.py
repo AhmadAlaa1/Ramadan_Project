@@ -52,7 +52,7 @@ def _maybe_relaunch_in_kitty() -> None:
     )
     os.execvpe(
         kitty,
-        [kitty, "--title", "NoorTerm", "sh", "-lc", shell_cmd],
+        [kitty, "--title", "DuaTerm", "sh", "-lc", shell_cmd],
         env,
     )
 

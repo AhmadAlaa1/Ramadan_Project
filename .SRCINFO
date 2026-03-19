@@ -1,8 +1,8 @@
-pkgbase = noorterm
+pkgbase = duaterm
 	pkgdesc = Terminal TUI for reading the Quran and Azkar offline
 	pkgver = 0.1.0
 	pkgrel = 1
-	url = https://example.invalid/noorterm
+	url = https://example.invalid/duaterm
 	arch = any
 	license = MIT
 	makedepends = python-build
@@ -12,7 +12,7 @@ pkgbase = noorterm
 	depends = python-pillow
 	depends = kitty
 	depends = noto-fonts
-	source = noorterm-0.1.0.tar.gz
+	source = duaterm-0.1.0.tar.gz
 	sha256sums = SKIP
 
-pkgname = noorterm
+pkgname = duaterm

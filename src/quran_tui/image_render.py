@@ -29,7 +29,7 @@ UI_FONT_CANDIDATES = [
     "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
     "/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf",
 ]
-RENDER_VERSION = "32"
+RENDER_VERSION = "33"
 BASMALA_PREFIXES = (
     "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
     "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ",
@@ -54,6 +54,7 @@ class KittyAyahRenderer:
         self.last_image: Path | None = None
         self.last_place: str | None = None
         self._line_cache: dict[tuple[int, int], list[str]] = {}
+        self._content_hash_cache: dict[int, str] = {}
         self.title_font = _load_font(self.font_path, 34)
         self.text_font = _load_font(self.font_path, 29)
         self.num_font = _load_font(self.ui_font_path, 22)
@@ -135,9 +136,13 @@ class KittyAyahRenderer:
         )
 
     def _render_image(self, surah: SurahDetails, top_line: int, width_cells: int, height_cells: int) -> Path:
-        content = "\n".join(f"{ayah.number_in_surah} {ayah.text}" for ayah in surah.ayahs)
+        content_hash = self._content_hash_cache.get(surah.summary.number)
+        if content_hash is None:
+            content = "\n".join(f"{ayah.number_in_surah} {ayah.text}" for ayah in surah.ayahs)
+            content_hash = hashlib.sha256(content.encode("utf-8")).hexdigest()
+            self._content_hash_cache[surah.summary.number] = content_hash
         key = hashlib.sha256(
-            f"{RENDER_VERSION}:{self._theme_signature}:{surah.summary.number}:{top_line}:{width_cells}:{height_cells}:{content}".encode("utf-8")
+            f"{RENDER_VERSION}:{self._theme_signature}:{surah.summary.number}:{top_line}:{width_cells}:{height_cells}:{content_hash}".encode("utf-8")
         ).hexdigest()
         image_path = self.cache_dir / f"{key}.png"
         if image_path.exists():
@@ -266,7 +271,7 @@ class KittyAyahRenderer:
 
     def _refresh_theme_if_needed(self) -> None:
         now = time.monotonic()
-        if now - self._last_theme_check < 1.0:
+        if now - self._last_theme_check < 3.0:
             return
         self._last_theme_check = now
         theme = get_render_theme()
@@ -493,6 +498,9 @@ class KittyAzkarRenderer:
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self.last_image: Path | None = None
         self.last_place: str | None = None
+        self._wrap_cache: dict[tuple[str, int], list[str]] = {}
+        self._item_height_cache: dict[tuple[str, str, int], int] = {}
+        self._content_hash_cache: dict[str, str] = {}
         self.text_font = _load_font(self.font_path, 30)
         self.title_font = _load_font(self.ui_font_path, 28)
         self.ui_font = _load_font(self.ui_font_path, 22)
@@ -504,6 +512,21 @@ class KittyAzkarRenderer:
     def clear(self) -> None:
         self.last_image = None
         self.last_place = None
+        if not self.is_supported():
+            return
+        subprocess.run(
+            [
+                "kitty",
+                "+kitten",
+                "icat",
+                "--stdin=no",
+                "--clear",
+                "--unicode-placeholder",
+                "--silent",
+            ],
+            check=False,
+            stderr=subprocess.DEVNULL,
+        )
 
     def draw(
         self,
@@ -550,9 +573,13 @@ class KittyAzkarRenderer:
         width_cells: int,
         height_cells: int,
     ) -> Path:
-        content = "\n".join(f"{item.repeat}|{item.text}|{item.note}" for item in items)
+        content_key = title + "\n" + "\n".join(f"{item.repeat}|{item.text}|{item.note}" for item in items)
+        content_hash = self._content_hash_cache.get(content_key)
+        if content_hash is None:
+            content_hash = hashlib.sha256(content_key.encode("utf-8")).hexdigest()
+            self._content_hash_cache[content_key] = content_hash
         key = hashlib.sha256(
-            f"{RENDER_VERSION}:{self._theme_signature}:{title}:{top_index}:{selected_index}:{width_cells}:{height_cells}:{content}".encode("utf-8")
+            f"{RENDER_VERSION}:{self._theme_signature}:{title}:{top_index}:{selected_index}:{width_cells}:{height_cells}:{content_hash}".encode("utf-8")
         ).hexdigest()
         image_path = self.cache_dir / f"{key}.png"
         if image_path.exists():
@@ -588,13 +615,9 @@ class KittyAzkarRenderer:
             selected = index == selected_index
             header_color = "#ffffff" if selected else self.theme.subheader
             text_color = "#ffffff" if selected else self.theme.text
-            wrapped = self._wrap_arabic_text(
-                draw,
-                normalize_azkar_text(item.text),
-                self.text_font,
-                available_width,
-            )
-            estimated_height = 30 + (len(wrapped) * 40) + (28 if item.note else 0) + 18
+            normalized = normalize_azkar_text(item.text)
+            wrapped = self._wrap_arabic_text(draw, normalized, self.text_font, available_width)
+            estimated_height = self._estimate_item_height(normalized, item.note, available_width, draw)
             if y + estimated_height > max_y:
                 break
 
@@ -622,6 +645,10 @@ class KittyAzkarRenderer:
         font: ImageFont.FreeTypeFont,
         width_px: int,
     ) -> list[str]:
+        cache_key = (text, width_px)
+        cached = self._wrap_cache.get(cache_key)
+        if cached is not None:
+            return cached
         words = text.split()
         if not words:
             return [text]
@@ -635,7 +662,24 @@ class KittyAzkarRenderer:
                 lines.append(current)
                 current = word
         lines.append(current)
+        self._wrap_cache[cache_key] = lines
         return lines
+
+    def _estimate_item_height(
+        self,
+        text: str,
+        note: str,
+        width_px: int,
+        draw: ImageDraw.ImageDraw,
+    ) -> int:
+        cache_key = (text, note, width_px)
+        cached = self._item_height_cache.get(cache_key)
+        if cached is not None:
+            return cached
+        wrapped = self._wrap_arabic_text(draw, text, self.text_font, width_px)
+        height = 30 + (len(wrapped) * 40) + (28 if note else 0) + 18
+        self._item_height_cache[cache_key] = height
+        return height
 
     def _draw_azkar_line(self, draw: ImageDraw.ImageDraw, right_x: int, y: int, text: str, color: str) -> None:
         parts: list[tuple[str, str]] = []
@@ -694,7 +738,7 @@ class KittyAzkarRenderer:
 
     def _refresh_theme_if_needed(self) -> None:
         now = time.monotonic()
-        if now - self._last_theme_check < 1.0:
+        if now - self._last_theme_check < 3.0:
             return
         self._last_theme_check = now
         theme = get_render_theme()
