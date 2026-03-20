@@ -100,11 +100,5 @@ sudo pacman -S --needed base-devel python-build python-installer python-setuptoo
 - `q`: quit from the main menu
 
 ## Notes
-
-- The VS Code integrated terminal is not a reliable target for fully-correct Quranic Arabic rendering
 - The app auto-prefers `kitty` because the reading pane is rendered as an image there
 - Quran text and metadata are bundled locally, so runtime internet access is not required
-
-## Philosophy
-
-Technology should bring peace, not distraction.
