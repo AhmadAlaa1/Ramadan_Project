@@ -21,8 +21,7 @@ Depends:
  fonts-dejavu-core,
  python3 (>= 3.11),
  python3-pil,
- ${misc:Depends},
- ${python3:Depends}
+ ${misc:Depends}
 Description: Terminal TUI for reading the Quran and Azkar offline
  NoorTerm is an offline terminal application for reading the
  Quran and Azkar with a curses interface.
