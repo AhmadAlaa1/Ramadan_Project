@@ -1,3 +1,9 @@
+noorterm (0.1.0-2) unstable; urgency=medium
+
+  * Update package description to match current app features.
+
+ -- NoorTerm Maintainers <maintainers@noorterm.invalid>  Fri, 20 Mar 2026 05:45:00 +0200
+
 noorterm (0.1.0-1) unstable; urgency=medium
 
   * Rebrand package as NoorTerm.

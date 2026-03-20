@@ -1,7 +1,7 @@
 [project]
 name = "noorterm"
 version = "0.1.0"
-description = "Light in your terminal: Quran and Azkar with a calm TUI."
+description = "Offline Quran reading and Azkar with bundled data and kitty-powered Arabic rendering."
 readme = "README.md"
 requires-python = ">=3.11"
 

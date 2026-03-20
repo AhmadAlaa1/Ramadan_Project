@@ -25,9 +25,9 @@ Depends:
 Replaces: quran-terminal-reader
 Breaks: quran-terminal-reader
 Provides: quran-terminal-reader
-Description: Terminal TUI for reading the Quran and Azkar offline
- NoorTerm is an offline terminal application for reading the
- Quran and Azkar with a curses interface.
+Description: Offline Quran reading and Azkar with bundled data
+ NoorTerm provides offline Quran reading and Azkar with bundled
+ data, keyboard navigation, and kitty-powered Arabic rendering.
  .
- When running inside kitty, the reading pane uses image rendering for better
- Arabic text display quality.
+ It includes morning and night Azkar, the 99 Names of Allah, and a
+ web UI fallback.
