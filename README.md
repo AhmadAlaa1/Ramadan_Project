@@ -15,7 +15,7 @@ NoorTerm is a terminal product for reading the Quran and Azkar with a calm TUI, 
 
 
 
-https://github.com/user-attachments/assets/7f5c9886-3830-4701-a3d2-ccc4a3131b16
+https://github.com/user-attachments/assets/2deac8fc-84e9-4ba5-94fe-088f735bea47
 
 
 
@@ -29,8 +29,8 @@ https://github.com/user-attachments/assets/7f5c9886-3830-4701-a3d2-ccc4a3131b16
 - Native packaging for Fedora/RPM, Debian/Ubuntu, and Arch(Coming Soon!)
 
 ## WebUi
+https://github.com/user-attachments/assets/7f5c9886-3830-4701-a3d2-ccc4a3131b16
 
-https://github.com/user-attachments/assets/2deac8fc-84e9-4ba5-94fe-088f735bea47
 
 ## The official Website
 
