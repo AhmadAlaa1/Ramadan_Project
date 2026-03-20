@@ -1,1 +1,0 @@
-"""Terminal Quran reader."""

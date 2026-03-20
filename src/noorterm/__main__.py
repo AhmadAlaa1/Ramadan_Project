@@ -10,10 +10,19 @@ from .api import QuranAPI
 from .ui import run_app
 
 
+def _env(name: str, legacy_name: str | None = None) -> str | None:
+    value = os.environ.get(name)
+    if value is not None:
+        return value
+    if legacy_name is not None:
+        return os.environ.get(legacy_name)
+    return None
+
+
 def _repo_root() -> Path | None:
     current = Path(__file__).resolve()
     for parent in current.parents:
-        if (parent / "pyproject.toml").exists() and (parent / "src" / "quran_tui").exists():
+        if (parent / "pyproject.toml").exists() and (parent / "src" / "noorterm").exists():
             return parent
     return None
 
@@ -21,9 +30,9 @@ def _repo_root() -> Path | None:
 def _maybe_relaunch_in_kitty() -> None:
     if os.environ.get("KITTY_WINDOW_ID"):
         return
-    if os.environ.get("QURAN_TUI_AUTO_KITTY") == "1":
+    if _env("NOORTERM_AUTO_KITTY", "QURAN_TUI_AUTO_KITTY") == "1":
         return
-    if os.environ.get("QURAN_TUI_DISABLE_AUTO_KITTY") == "1":
+    if _env("NOORTERM_DISABLE_AUTO_KITTY", "QURAN_TUI_DISABLE_AUTO_KITTY") == "1":
         return
     has_graphical_session = bool(os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY"))
     if not sys.stdout.isatty() and not has_graphical_session:
@@ -34,7 +43,7 @@ def _maybe_relaunch_in_kitty() -> None:
         return
 
     env = os.environ.copy()
-    env["QURAN_TUI_AUTO_KITTY"] = "1"
+    env["NOORTERM_AUTO_KITTY"] = "1"
 
     repo_root = _repo_root()
     if repo_root is not None:
@@ -49,7 +58,7 @@ def _maybe_relaunch_in_kitty() -> None:
 
     shell_cmd = (
         f"cd {shlex.quote(str(Path.cwd()))} && "
-        f"exec {shlex.quote(sys.executable)} -m quran_tui"
+        f"exec {shlex.quote(sys.executable)} -m noorterm"
     )
     os.execvpe(
         kitty,

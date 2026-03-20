@@ -6,8 +6,7 @@ readme = "README.md"
 requires-python = ">=3.11"
 
 [project.scripts]
-noorterm = "quran_tui.__main__:main"
-quran-tui = "quran_tui.__main__:main"
+noorterm = "noorterm.__main__:main"
 
 [build-system]
 requires = ["setuptools>=68"]
@@ -17,7 +16,7 @@ build-backend = "setuptools.build_meta"
 package-dir = {"" = "src"}
 
 [tool.setuptools.package-data]
-quran_tui = ["data/*.json"]
+noorterm = ["data/*.json"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

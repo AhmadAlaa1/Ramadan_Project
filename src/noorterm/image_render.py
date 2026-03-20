@@ -49,7 +49,7 @@ class KittyAyahRenderer:
         self.theme = get_render_theme()
         self._theme_signature = tuple(self.theme.__dict__.values())
         self._last_theme_check = 0.0
-        self.cache_dir = Path(tempfile.gettempdir()) / "quran-tui-images"
+        self.cache_dir = Path(tempfile.gettempdir()) / "noorterm-images"
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self.last_image: Path | None = None
         self.last_place: str | None = None
@@ -494,7 +494,7 @@ class KittyAzkarRenderer:
         self.theme = get_render_theme()
         self._theme_signature = tuple(self.theme.__dict__.values())
         self._last_theme_check = 0.0
-        self.cache_dir = Path(tempfile.gettempdir()) / "quran-tui-azkar-images"
+        self.cache_dir = Path(tempfile.gettempdir()) / "noorterm-azkar-images"
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self.last_image: Path | None = None
         self.last_place: str | None = None

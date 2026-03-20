@@ -73,7 +73,7 @@ def build_browser_fallback(
     night = [{"text": normalize_azkar_text(item.text), "repeat": item.repeat, "note": item.note} for item in NIGHT_AZKAR]
     names = [{"text": item.text, "repeat": item.repeat, "note": item.note} for item in ALLAH_NAMES]
 
-    output_dir = Path(tempfile.gettempdir()) / "quran-tui-browser"
+    output_dir = Path(tempfile.gettempdir()) / "noorterm-browser"
     output_dir.mkdir(parents=True, exist_ok=True)
     output_path = output_dir / f"fallback-{HTML_VERSION}.html"
 

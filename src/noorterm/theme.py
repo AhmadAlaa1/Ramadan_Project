@@ -57,7 +57,7 @@ THEMES: dict[str, RenderTheme] = {
 
 
 def get_render_theme() -> RenderTheme:
-    theme_name = os.environ.get("QURAN_TUI_THEME", "auto").strip().lower()
+    theme_name = os.environ.get("NOORTERM_THEME", os.environ.get("QURAN_TUI_THEME", "auto")).strip().lower()
     if theme_name == "auto":
         kitty_theme = _get_kitty_render_theme()
         if kitty_theme is not None:
@@ -65,13 +65,13 @@ def get_render_theme() -> RenderTheme:
     base = THEMES[_resolve_theme_name(theme_name)]
 
     return RenderTheme(
-        background=os.environ.get("QURAN_TUI_BG", base.background),
-        page=os.environ.get("QURAN_TUI_PAGE", base.page),
-        text=os.environ.get("QURAN_TUI_TEXT", base.text),
-        number=os.environ.get("QURAN_TUI_NUMBER", base.number),
-        header=os.environ.get("QURAN_TUI_HEADER", base.header),
-        subheader=os.environ.get("QURAN_TUI_SUBHEADER", base.subheader),
-        ornament=os.environ.get("QURAN_TUI_ORNAMENT", base.ornament),
+        background=os.environ.get("NOORTERM_BG", os.environ.get("QURAN_TUI_BG", base.background)),
+        page=os.environ.get("NOORTERM_PAGE", os.environ.get("QURAN_TUI_PAGE", base.page)),
+        text=os.environ.get("NOORTERM_TEXT", os.environ.get("QURAN_TUI_TEXT", base.text)),
+        number=os.environ.get("NOORTERM_NUMBER", os.environ.get("QURAN_TUI_NUMBER", base.number)),
+        header=os.environ.get("NOORTERM_HEADER", os.environ.get("QURAN_TUI_HEADER", base.header)),
+        subheader=os.environ.get("NOORTERM_SUBHEADER", os.environ.get("QURAN_TUI_SUBHEADER", base.subheader)),
+        ornament=os.environ.get("NOORTERM_ORNAMENT", os.environ.get("QURAN_TUI_ORNAMENT", base.ornament)),
     )
 
 

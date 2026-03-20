@@ -33,7 +33,7 @@ web UI fallback.
 
 %install
 %pyproject_install
-%pyproject_save_files quran_tui
+%pyproject_save_files noorterm
 
 %check
 python3 -m unittest discover -s tests -v
@@ -42,7 +42,6 @@ python3 -m unittest discover -s tests -v
 %license LICENSE
 %doc README.md
 %{_bindir}/noorterm
-%{_bindir}/quran-tui
 
 %changelog
 * Wed Mar 18 2026 NoorTerm Maintainers <maintainers@noorterm.invalid> - 0.1.0-1

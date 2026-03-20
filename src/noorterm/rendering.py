@@ -14,7 +14,10 @@ AYAH_SEPARATOR_RE = re.compile(r"\s*۝\s*")
 
 
 ARABIC_DISPLAY_MODES = {"plain", "bidi", "reshaped"}
-DEFAULT_ARABIC_DISPLAY_MODE = os.environ.get("QURAN_TUI_ARABIC_MODE", "bidi").strip().lower()
+DEFAULT_ARABIC_DISPLAY_MODE = os.environ.get(
+    "NOORTERM_ARABIC_MODE",
+    os.environ.get("QURAN_TUI_ARABIC_MODE", "bidi"),
+).strip().lower()
 if DEFAULT_ARABIC_DISPLAY_MODE not in ARABIC_DISPLAY_MODES:
     DEFAULT_ARABIC_DISPLAY_MODE = "bidi"
 

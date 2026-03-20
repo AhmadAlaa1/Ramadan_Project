@@ -8,7 +8,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from quran_tui.api import QuranAPI, QuranAPIError
+from noorterm.api import QuranAPI, QuranAPIError
 
 
 SURAH_LIST_PAYLOAD = {
